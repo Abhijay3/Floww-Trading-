@@ -1,162 +1,184 @@
-import { useQuery } from "@tanstack/react-query";
 import { useRoute } from "wouter";
-import { useState } from "react";
-import StockChart from "@/components/StockChart";
-import MarketDepth from "@/components/MarketDepth";
-import OrderModal from "@/components/OrderModal";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect, useRef } from "react";
 
 export default function StockDetails() {
 
   const [, params] = useRoute("/stock/:symbol");
   const symbol = params?.symbol;
 
-  const [qty, setQty] = useState<number>(1);
-  const [orderType, setOrderType] = useState<string | null>(null);
+  const chartRef = useRef<HTMLDivElement>(null);
 
-  const { data, isLoading, error } = useQuery({
+  const queryClient = useQueryClient();
+
+  const [quantity, setQuantity] = useState(1);
+  const [loading, setLoading] = useState(false);
+
+  const { data: stocks } = useQuery({
     queryKey: ["/api/stocks"],
     queryFn: async () => {
-
       const res = await fetch("/api/stocks");
-
-      if (!res.ok) {
-        throw new Error("Failed to load stocks");
-      }
-
       return res.json();
-
     },
     refetchInterval: 5000
   });
 
-  if (isLoading) {
-    return <div className="p-6">Loading stock...</div>;
-  }
+  const stock = Array.isArray(stocks)
+    ? stocks.find((s: any) => s.symbol === symbol)
+    : null;
 
-  if (error) {
-    return <div className="p-6 text-red-500">Failed to load stock</div>;
-  }
+  useEffect(() => {
 
-  const stock = data?.find((s: any) => s.symbol === symbol);
+    if (!chartRef.current || !symbol) return;
+
+    chartRef.current.innerHTML = "";
+
+    const script = document.createElement("script");
+
+    script.src =
+      "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
+
+    script.type = "text/javascript";
+    script.async = true;
+
+    script.innerHTML = JSON.stringify({
+      autosize: true,
+      symbol: `NSE:${symbol}`,
+      interval: "D",
+      timezone: "Asia/Kolkata",
+      theme: "light",
+      style: "1",
+      locale: "en",
+      hide_top_toolbar: false,
+      allow_symbol_change: false
+    });
+
+    chartRef.current.appendChild(script);
+
+  }, [symbol]);
 
   if (!stock) {
     return <div className="p-6">Stock not found</div>;
   }
 
-  const price = Number(stock.price || 0);
-  const orderValue = price * qty;
+  async function buyStock() {
+
+    setLoading(true);
+
+    await fetch("/api/buy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        symbol: stock.symbol,
+        quantity
+      })
+    });
+
+    await queryClient.invalidateQueries({ queryKey: ["/api/portfolio"] });
+    await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+
+    setLoading(false);
+
+    alert("Stock purchased");
+
+  }
+
+  async function sellStock() {
+
+    setLoading(true);
+
+    await fetch("/api/sell", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        symbol: stock.symbol,
+        quantity
+      })
+    });
+
+    await queryClient.invalidateQueries({ queryKey: ["/api/portfolio"] });
+    await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+
+    setLoading(false);
+
+    alert("Stock sold");
+
+  }
+
+  const total = Number(stock.price) * quantity;
 
   return (
 
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-8">
 
-      <h1 className="text-3xl font-bold">
-        {stock.symbol} - {stock.name}
-      </h1>
+      <div>
+        <h1 className="text-3xl font-bold">{stock.symbol}</h1>
+        <p className="text-gray-500">{stock.name}</p>
+      </div>
 
-      <div className="grid grid-cols-3 gap-6">
+      {/* TRADINGVIEW CHART */}
 
-        {/* LEFT SIDE */}
+      <div className="border rounded-xl h-[500px]">
 
-        <div className="col-span-2 space-y-6">
+        <div
+          ref={chartRef}
+          className="h-full w-full"
+        />
 
-          {/* PRICE */}
+      </div>
 
-          <div className="border rounded-xl p-4">
+      {/* ORDER PANEL */}
 
-            <div className="text-xl font-bold">
-              ₹{price.toFixed(2)}
-            </div>
+      <div className="border rounded-xl p-6 space-y-4">
 
-            <div
-              className={`${
-                Number(stock.changePercent) >= 0
-                  ? "text-green-600"
-                  : "text-red-600"
-              }`}
-            >
-              {Number(stock.change || 0).toFixed(2)} (
-              {Number(stock.changePercent || 0).toFixed(2)}%)
-            </div>
+        <div className="flex justify-between">
+          <p>Current Price</p>
+          <p className="font-bold">
+            ₹{Number(stock.price).toFixed(2)}
+          </p>
+        </div>
 
-          </div>
+        <div className="flex justify-between items-center">
+          <p>Quantity</p>
 
-          {/* CHART */}
-
-          <div className="border rounded-xl p-4">
-            <StockChart symbol={symbol} />
-          </div>
-
-          {/* MARKET DEPTH */}
-
-          <MarketDepth price={price} />
+          <input
+            type="number"
+            min="1"
+            value={quantity}
+            onChange={(e) => setQuantity(Number(e.target.value))}
+            className="border rounded px-3 py-1 w-24"
+          />
 
         </div>
 
-        {/* TRADE PANEL */}
+        <div className="flex justify-between">
+          <p>Order Value</p>
+          <p className="font-bold">
+            ₹{total.toFixed(2)}
+          </p>
+        </div>
 
-        <div className="border rounded-xl p-4 space-y-4">
+        <div className="flex gap-4">
 
-          <h2 className="font-semibold text-lg">
-            Trade
-          </h2>
+          <button
+            onClick={buyStock}
+            disabled={loading}
+            className="bg-green-600 text-white px-6 py-2 rounded-lg"
+          >
+            Buy
+          </button>
 
-          <div>
-
-            <p className="text-sm text-gray-500">
-              Quantity
-            </p>
-
-            <input
-              type="number"
-              value={qty}
-              min={1}
-              onChange={(e) => setQty(Number(e.target.value))}
-              className="border rounded w-full p-2 mt-1"
-            />
-
-          </div>
-
-          <div className="text-sm">
-            Price: <b>₹{price.toFixed(2)}</b>
-          </div>
-
-          <div className="text-sm">
-            Order Value: <b>₹{orderValue.toFixed(2)}</b>
-          </div>
-
-          <div className="flex gap-2">
-
-            <button
-              onClick={() => setOrderType("BUY")}
-              className="bg-green-600 text-white w-full py-2 rounded hover:bg-green-700"
-            >
-              Buy
-            </button>
-
-            <button
-              onClick={() => setOrderType("SELL")}
-              className="bg-red-600 text-white w-full py-2 rounded hover:bg-red-700"
-            >
-              Sell
-            </button>
-
-          </div>
+          <button
+            onClick={sellStock}
+            disabled={loading}
+            className="bg-red-600 text-white px-6 py-2 rounded-lg"
+          >
+            Sell
+          </button>
 
         </div>
 
       </div>
-
-      {/* ORDER MODAL */}
-
-      {orderType && (
-        <OrderModal
-          stock={stock}
-          type={orderType}
-          quantity={qty}
-          onClose={() => setOrderType(null)}
-        />
-      )}
 
     </div>
 

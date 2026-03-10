@@ -25,94 +25,87 @@ import MarketTicker from "@/components/MarketTicker";
 import Watchlist from "@/components/Watchlist";
 
 function Router() {
+return ( <div className="flex flex-col min-h-screen bg-gray-50">
 
-  return (
+```
+  <MarketTicker />
+  <Navbar />
 
-    <div className="flex flex-col min-h-screen">
+  <div className="flex flex-grow">
 
-      {/* MARKET TICKER */}
-      <MarketTicker />
-
-      <Navbar />
-
-      <div className="flex flex-grow">
-
-        {/* WATCHLIST SIDEBAR */}
-        <Watchlist />
-
-        {/* PAGE CONTENT */}
-
-        <main className="flex-grow p-6">
-
-          <Switch>
-
-            <Route path="/" component={Home} />
-
-            <Route path="/sip-calculator" component={SipCalculator} />
-            <Route path="/brokerage-calculator" component={BrokerageCalculator} />
-
-            <Route path="/dashboard" component={Dashboard} />
-
-            <Route path="/stock/:symbol" component={StockDetails} />
-
-            <Route path="/stocks">
-              <ProtectedRoute>
-                <Stocks />
-              </ProtectedRoute>
-            </Route>
-
-            <Route path="/portfolio">
-              <ProtectedRoute>
-                <Portfolio />
-              </ProtectedRoute>
-            </Route>
-
-            <Route path="/wallet">
-              <ProtectedRoute>
-                <Wallet />
-              </ProtectedRoute>
-            </Route>
-
-            <Route path="/transactions">
-              <ProtectedRoute>
-                <Transactions />
-              </ProtectedRoute>
-            </Route>
-
-            <Route component={NotFound} />
-
-          </Switch>
-
-        </main>
-
-      </div>
-
-      <Footer />
-
+    {/* Watchlist Sidebar */}
+    <div className="w-80 border-r bg-white hidden lg:block">
+      <Watchlist />
     </div>
 
-  );
+    {/* Page Content */}
+    <main className="flex-grow p-8 max-w-7xl mx-auto w-full">
 
+      <Switch>
+
+        <Route path="/">
+          <Home />
+        </Route>
+
+        <Route path="/sip-calculator">
+          <SipCalculator />
+        </Route>
+
+        <Route path="/brokerage-calculator">
+          <BrokerageCalculator />
+        </Route>
+
+        <Route path="/dashboard">
+          <Dashboard />
+        </Route>
+
+        <Route path="/stock/:symbol">
+          {(params) => <StockDetails symbol={params.symbol} />}
+        </Route>
+
+        <Route path="/stocks">
+          <ProtectedRoute>
+            <Stocks />
+          </ProtectedRoute>
+        </Route>
+
+        <Route path="/portfolio">
+          <ProtectedRoute>
+            <Portfolio />
+          </ProtectedRoute>
+        </Route>
+
+        <Route path="/wallet">
+          <ProtectedRoute>
+            <Wallet />
+          </ProtectedRoute>
+        </Route>
+
+        <Route path="/transactions">
+          <ProtectedRoute>
+            <Transactions />
+          </ProtectedRoute>
+        </Route>
+
+        <Route>
+          <NotFound />
+        </Route>
+
+      </Switch>
+
+    </main>
+
+  </div>
+
+  <Footer />
+
+</div>
+);
 }
 
 function App() {
-
-  return (
-
-    <QueryClientProvider client={queryClient}>
-
-      <TooltipProvider>
-
-        <Toaster />
-
-        <Router />
-
-      </TooltipProvider>
-
-    </QueryClientProvider>
-
-  );
-
+return ( <QueryClientProvider client={queryClient}> <TooltipProvider> <Toaster /> <Router /> </TooltipProvider> </QueryClientProvider>
+);
 }
 
 export default App;

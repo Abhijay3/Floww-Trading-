@@ -98,38 +98,37 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   });
 
   /* ---------------- WALLET DEPOSIT ---------------- */
-app.post("/api/wallet/deposit", async (req, res) => {
 
-  const user = await getCurrentUser(req, res);
-  if (!user) return;
+  app.post("/api/wallet/deposit", async (req, res) => {
 
-  const amount = Number(req.body.amount);
+    const user = await getCurrentUser(req, res);
+    if (!user) return;
 
-  if (!amount || amount <= 0) {
-    return res.status(400).json({ message: "Invalid amount" });
-  }
+    const amount = Number(req.body.amount);
 
-  const newBalance = Number(user.balance || 0) + amount;
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ message: "Invalid amount" });
+    }
 
-  // update balance
-  await storage.updateUserBalance(
-    user.id,
-    String(newBalance)
-  );
+    const newBalance = Number(user.balance || 0) + amount;
 
-  // save transaction
-  await storage.createWalletTransaction(
-    user.id,
-    "deposit",
-    String(amount)
-  );
+    await storage.updateUserBalance(
+      user.id,
+      String(newBalance)
+    );
 
-  res.json({
-    success: true,
-    balance: newBalance
+    await storage.createWalletTransaction(
+      user.id,
+      "deposit",
+      String(amount)
+    );
+
+    res.json({
+      success: true,
+      balance: newBalance
+    });
+
   });
-
-});
 
   /* ---------------- WALLET TRANSACTIONS ---------------- */
 
@@ -170,6 +169,117 @@ app.post("/api/wallet/deposit", async (req, res) => {
     });
 
     res.json(updatedStocks);
+
+  });
+
+  /* ---------------- BUY STOCK ---------------- */
+
+  app.post("/api/buy", async (req, res) => {
+
+    const user = await getCurrentUser(req, res);
+    if (!user) return;
+
+    const { symbol, quantity } = req.body;
+
+    const stock = await storage.getStockBySymbol(symbol);
+
+    if (!stock) {
+      return res.status(404).json({ message: "Stock not found" });
+    }
+
+    const cost = Number(stock.price) * Number(quantity);
+
+    if (Number(user.balance) < cost) {
+      return res.status(400).json({ message: "Insufficient balance" });
+    }
+
+    const newBalance = Number(user.balance) - cost;
+
+    await storage.updateUserBalance(
+      user.id,
+      String(newBalance)
+    );
+
+    await storage.addHolding(
+      user.id,
+      stock.id,
+      quantity,
+      stock.price
+    );
+
+    await storage.createTransaction({
+      userId: user.id,
+      stockId: stock.id,
+      type: "BUY",
+      quantity,
+      price: stock.price
+    });
+
+    res.json({ success: true });
+
+  });
+
+  /* ---------------- SELL STOCK ---------------- */
+
+  app.post("/api/sell", async (req, res) => {
+
+    const user = await getCurrentUser(req, res);
+    if (!user) return;
+
+    const { symbol, quantity } = req.body;
+
+    const stock = await storage.getStockBySymbol(symbol);
+
+    const holding = await storage.getHolding(user.id, stock.id);
+
+    if (!holding || Number(holding.quantity) < Number(quantity)) {
+      return res.status(400).json({ message: "Not enough shares" });
+    }
+
+    const value = Number(stock.price) * Number(quantity);
+
+    const newBalance = Number(user.balance) + value;
+
+    await storage.updateUserBalance(
+      user.id,
+      String(newBalance)
+    );
+
+    await storage.updateHoldingQuantity(
+      user.id,
+      stock.id,
+      Number(holding.quantity) - Number(quantity)
+    );
+
+    await storage.createTransaction({
+      userId: user.id,
+      stockId: stock.id,
+      type: "SELL",
+      quantity,
+      price: stock.price
+    });
+
+    res.json({ success: true });
+
+  });
+
+  /* ---------------- WATCHLIST ---------------- */
+
+  app.post("/api/watchlist", async (req, res) => {
+
+    const user = await getCurrentUser(req, res);
+    if (!user) return;
+
+    const { symbol } = req.body;
+
+    const stock = await storage.getStockBySymbol(symbol);
+
+    await storage.addWatchlist(
+      user.id,
+      stock.id
+    );
+
+    res.json({ success: true });
 
   });
 

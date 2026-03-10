@@ -26,11 +26,19 @@ export default function Stocks() {
   });
 
   if (isLoading) {
-    return <div className="p-6">Loading stocks...</div>;
+    return (
+      <div className="p-6 text-gray-500">
+        Loading stocks...
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="p-6 text-red-500">Failed to load stocks</div>;
+    return (
+      <div className="p-6 text-red-500">
+        Failed to load stocks
+      </div>
+    );
   }
 
   const stocks = Array.isArray(data) ? data : [];
@@ -42,63 +50,104 @@ export default function Stocks() {
 
   return (
 
-    <div className="p-6">
+    <div className="p-6 space-y-6">
 
-      <h1 className="text-2xl font-bold mb-4">
-        Stocks
+      <h1 className="text-2xl font-bold">
+        Market Stocks
       </h1>
-
-      {/* SEARCH BAR */}
 
       <input
         type="text"
         placeholder="Search stocks (e.g. RELIANCE)"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="border rounded-lg px-4 py-2 w-full mb-4"
+        className="border rounded-lg px-4 py-2 w-full max-w-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
       />
 
-      <div className="grid gap-3">
+      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
 
-        {filteredStocks.map((stock: any) => (
+        <table className="w-full text-sm">
 
-          <div
-            key={stock.id}
-            onClick={() => navigate(`/stock/${stock.symbol}`)}
-            className="border rounded-xl p-4 cursor-pointer hover:bg-gray-50 transition"
-          >
+          <thead className="border-b bg-gray-50 text-gray-600">
 
-            <div className="flex justify-between items-center">
+            <tr>
 
-              <div>
-                <p className="font-semibold">{stock.symbol}</p>
-                <p className="text-sm text-gray-500">{stock.name}</p>
-              </div>
+              <th className="text-left py-3 px-4">
+                Symbol
+              </th>
 
-              <div className="text-right">
+              <th className="text-left">
+                Name
+              </th>
 
-                <p className="font-bold text-lg">
+              <th className="text-right">
+                Price
+              </th>
+
+              <th className="text-right pr-4">
+                Change
+              </th>
+
+            </tr>
+
+          </thead>
+
+          <tbody>
+
+            {filteredStocks.length === 0 && (
+
+              <tr>
+
+                <td
+                  colSpan={4}
+                  className="py-6 text-center text-gray-500"
+                >
+                  No stocks found
+                </td>
+
+              </tr>
+
+            )}
+
+            {filteredStocks.map((stock: any) => (
+
+              <tr
+                key={stock.id}
+                onClick={() => navigate(`/stock/${stock.symbol}`)}
+                className="border-b hover:bg-gray-50 cursor-pointer"
+              >
+
+                <td className="py-3 px-4 font-semibold">
+                  {stock.symbol}
+                </td>
+
+                <td className="text-gray-500">
+                  {stock.name}
+                </td>
+
+                <td className="text-right font-medium tabular-nums">
                   ₹{Number(stock.price || 0).toFixed(2)}
-                </p>
+                </td>
 
-                <p
-                  className={`text-sm ${
-                    Number(stock.change) >= 0
+                <td
+                  className={
+                    "text-right pr-4 font-medium " +
+                    (Number(stock.change) >= 0
                       ? "text-green-600"
-                      : "text-red-600"
-                  }`}
+                      : "text-red-600")
+                  }
                 >
                   {Number(stock.change || 0).toFixed(2)} (
                   {Number(stock.changePercent || 0).toFixed(2)}%)
-                </p>
+                </td>
 
-              </div>
+              </tr>
 
-            </div>
+            ))}
 
-          </div>
+          </tbody>
 
-        ))}
+        </table>
 
       </div>
 

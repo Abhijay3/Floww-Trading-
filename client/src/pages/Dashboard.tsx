@@ -19,9 +19,10 @@ import {
 export default function Dashboard() {
 
   const { data: user } = useQuery({
-    queryKey: ["/api/auth/me"],
+    queryKey: ["/api/me"],
     queryFn: async () => {
-      const res = await fetch("/api/auth/me");
+      const res = await fetch("/api/me");
+      if (!res.ok) return { balance: 0 };
       return res.json();
     }
   });
@@ -30,14 +31,13 @@ export default function Dashboard() {
     queryKey: ["/api/portfolio"],
     queryFn: async () => {
       const res = await fetch("/api/portfolio");
+      if (!res.ok) return [];
       return res.json();
     },
     refetchInterval: 5000
   });
 
   const holdings = Array.isArray(portfolio) ? portfolio : [];
-
-  /* PORTFOLIO CALCULATIONS */
 
   let invested = 0;
   let value = 0;
@@ -55,8 +55,6 @@ export default function Dashboard() {
 
   const pnl = value - invested;
 
-  /* PORTFOLIO ALLOCATION */
-
   const allocation = holdings.map((h: any) => ({
     name: h.stock?.symbol || "Stock",
     value: Number(h.currentValue || 0)
@@ -70,8 +68,6 @@ export default function Dashboard() {
     "#ef4444",
     "#14b8a6"
   ];
-
-  /* LIVE PORTFOLIO HISTORY */
 
   const [history, setHistory] = useState<
     { time: string; value: number }[]
@@ -97,8 +93,6 @@ export default function Dashboard() {
 
   }, [value]);
 
-  /* PORTFOLIO INSIGHT */
-
   let insight = "Your portfolio is currently neutral.";
 
   if (pnl > 0) {
@@ -111,6 +105,14 @@ export default function Dashboard() {
       "Your portfolio is currently in loss. Long-term holding may help recovery.";
   }
 
+  if (portfolio === undefined) {
+    return (
+      <div className="p-10 text-center text-gray-500">
+        Loading dashboard...
+      </div>
+    );
+  }
+
   return (
 
     <div className="p-6 space-y-8">
@@ -119,11 +121,9 @@ export default function Dashboard() {
         Trading Dashboard
       </h1>
 
-      {/* DASHBOARD CARDS */}
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
-        <div className="border rounded-xl p-4 card-shadow">
+        <div className="border rounded-xl p-4 shadow-sm">
           <p className="text-sm text-gray-500">Wallet Balance</p>
           <p className="text-xl font-bold">
             ₹
@@ -136,7 +136,7 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <div className="border rounded-xl p-4 card-shadow">
+        <div className="border rounded-xl p-4 shadow-sm">
           <p className="text-sm text-gray-500">Total Invested</p>
           <p className="text-xl font-bold">
             ₹
@@ -149,7 +149,7 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <div className="border rounded-xl p-4 card-shadow">
+        <div className="border rounded-xl p-4 shadow-sm">
           <p className="text-sm text-gray-500">Portfolio Value</p>
           <p className="text-xl font-bold">
             ₹
@@ -162,16 +162,19 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <div className="border rounded-xl p-4 card-shadow">
+        <div className="border rounded-xl p-4 shadow-sm">
+
           <p className="text-sm text-gray-500">Profit / Loss</p>
+
           <p
-            className={`text-xl font-bold ${
-              pnl > 0
+            className={
+              "text-xl font-bold " +
+              (pnl > 0
                 ? "text-green-600"
                 : pnl < 0
                 ? "text-red-600"
-                : "text-gray-600"
-            }`}
+                : "text-gray-600")
+            }
           >
             ₹
             <CountUp
@@ -181,13 +184,12 @@ export default function Dashboard() {
               separator=","
             />
           </p>
+
         </div>
 
       </div>
 
-      {/* PORTFOLIO GROWTH CHART */}
-
-      <div className="border rounded-xl p-6 card-shadow">
+      <div className="border rounded-xl p-6 shadow-sm">
 
         <h2 className="text-lg font-semibold mb-4">
           Portfolio Growth
@@ -219,9 +221,7 @@ export default function Dashboard() {
 
       </div>
 
-      {/* PORTFOLIO ALLOCATION */}
-
-      <div className="border rounded-xl p-6 card-shadow">
+      <div className="border rounded-xl p-6 shadow-sm">
 
         <h2 className="text-lg font-semibold mb-4">
           Portfolio Allocation
@@ -256,9 +256,7 @@ export default function Dashboard() {
 
       </div>
 
-      {/* PORTFOLIO INSIGHT */}
-
-      <div className="border rounded-xl p-6 card-shadow">
+      <div className="border rounded-xl p-6 shadow-sm">
 
         <h2 className="text-lg font-semibold mb-2">
           Portfolio Insight
@@ -270,9 +268,7 @@ export default function Dashboard() {
 
       </div>
 
-      {/* HOLDINGS TABLE */}
-
-      <div className="border rounded-xl p-6 card-shadow">
+      <div className="border rounded-xl p-6 shadow-sm">
 
         <h2 className="text-lg font-semibold mb-4">
           Your Holdings
@@ -345,9 +341,7 @@ export default function Dashboard() {
 
       </div>
 
-      {/* MARKET HEATMAP */}
-
-      <div className="border rounded-xl p-6 card-shadow">
+      <div className="border rounded-xl p-6 shadow-sm">
 
         <h2 className="text-lg font-semibold mb-4">
           Market Heatmap
