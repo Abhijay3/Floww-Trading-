@@ -1,8 +1,8 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { api, buildUrl } from "@shared/routes";
 import { type Stock } from "@shared/schema";
-import { queryClient } from "@/lib/queryClient";
-import { apiRequest } from "@/lib/queryClient";
+import { queryClient } from "./lib/queryClient";
+import { apiRequest } from "./lib/queryClient";
 import { useToast } from "./use-toast";
 
 export function useStocks() {

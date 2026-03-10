@@ -1,5 +1,5 @@
 import { Redirect } from "wouter";
-import { useUser } from "@/hooks/use-auth";
+import { useUser } from "./hooks/use-auth";
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
 

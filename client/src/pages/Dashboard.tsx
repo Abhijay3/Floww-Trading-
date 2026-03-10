@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import CountUp from "react-countup";
-import MarketHeatmap from "@/components/MarketHeatmap";
+import MarketHeatmap from "./components/MarketHeatmap";
 import { useState, useEffect } from "react";
 
 import {

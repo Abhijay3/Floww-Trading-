@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { useLogin, useRegister } from "@/hooks/use-auth";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
+import { Input } from "./components/ui/input";
+import { Button } from "./components/ui/button";
+import { Label } from "./components/ui/label";
+import { useLogin, useRegister } from "./hooks/use-auth";
 
 interface AuthModalProps {
   isOpen: boolean;

@@ -12,10 +12,10 @@ import {
   ArrowLeftRight
 } from "lucide-react";
 
-import { useUser, useLogout } from "@/hooks/use-auth";
-import { AuthModal } from "@/components/auth/AuthModal";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useUser, useLogout } from "./hooks/use-auth";
+import { AuthModal } from "./components/auth/AuthModal";
+import { Button } from "./components/ui/button";
+import { Input } from "./components/ui/input";
 
 import {
   NavigationMenu,
@@ -23,7 +23,7 @@ import {
   NavigationMenuItem,
   NavigationMenuList,
   NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
+} from "./components/ui/navigation-menu";
 
 import {
   DropdownMenu,
@@ -32,9 +32,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "./components/ui/dropdown-menu";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "./components/ui/avatar";
 
 import mfPreviewImage from "/images/generated_image_1.png";
 

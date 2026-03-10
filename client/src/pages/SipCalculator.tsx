@@ -1,9 +1,9 @@
 import { useState, useMemo } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
-import { Slider } from "@/components/ui/slider";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Slider } from "./components/ui/slider";
+import { Card, CardContent } from "./components/ui/card";
+import { Input } from "./components/ui/input";
+import { Button } from "./components/ui/button";
 
 export function SipCalculator() {
   const [investment, setInvestment] = useState(5000);

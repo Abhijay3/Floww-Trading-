@@ -1,10 +1,10 @@
 import { motion } from "framer-motion";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import HeroChart from "@/components/HeroCharts";
-import MarketHeatmap from "@/components/MarketHeatmap";
-import MarketMovers from "@/components/MarketMovers";
-import Sparkline from "@/components/Sparkline";
+import HeroChart from "./components/HeroCharts";
+import MarketHeatmap from "./components/MarketHeatmap";
+import MarketMovers from "./components/MarketMovers";
+import Sparkline from "./components/Sparkline";
 
 export function Home() {
 
